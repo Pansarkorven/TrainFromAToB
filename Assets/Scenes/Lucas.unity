@@ -226,12 +226,29 @@ Transform:
   m_GameObject: {fileID: 22438372}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.06, z: 6.69}
+  m_LocalPosition: {x: 0, y: 2, z: 6.69}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &121619843 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1616137966444997873, guid: 943a297bc12d49048b5df88bff911a49, type: 3}
+  m_PrefabInstance: {fileID: 1160442830}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &121619850
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 121619843}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b80ed600410b975459695a01e7551f77, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &310183735
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -396,7 +413,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 100, y: 0, z: 100}
+  m_LocalScale: {x: 100, y: 1, z: 100}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -532,7 +549,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1616137966444997873, guid: 943a297bc12d49048b5df88bff911a49, type: 3}
       propertyPath: m_Name
-      value: PlayerCapsule
+      value: Player
       objectReference: {fileID: 0}
     - target: {fileID: 6780503122267494269, guid: 943a297bc12d49048b5df88bff911a49, type: 3}
       propertyPath: m_LocalPosition.x
@@ -577,7 +594,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 1616137966444997873, guid: 943a297bc12d49048b5df88bff911a49, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 121619850}
   m_SourcePrefab: {fileID: 100100000, guid: 943a297bc12d49048b5df88bff911a49, type: 3}
 --- !u!1001 &5228720217882873644
 PrefabInstance:

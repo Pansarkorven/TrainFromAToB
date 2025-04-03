@@ -5,6 +5,9 @@ using UnityEngine.InputSystem;
 using Cinemachine;
 using UnityEngine.UIElements;
 using Cursor = UnityEngine.Cursor;
+using TMPro;
+using System.Xml;
+
 
 public class InspectCode : MonoBehaviour
 {
@@ -16,6 +19,8 @@ public class InspectCode : MonoBehaviour
     public GameObject tableObject;
     private Vector3 lastMousePosition;
     private Transform examinedObject;
+    public TMP_Text tmpText;
+
 
     private Dictionary<Transform, Vector3> originalPositions = new Dictionary<Transform, Vector3>();
     private Dictionary<Transform, Quaternion> originalRotations = new Dictionary<Transform, Quaternion>();
@@ -27,23 +32,33 @@ public class InspectCode : MonoBehaviour
         _canva.enabled = false;
         targetObject = GameObject.Find("Player");
         _playerInput = targetObject.GetComponent<PlayerInput>();
-cinemachineBrain = GameObject.Find("Camera").GetComponent<CinemachineBrain>();
+        cinemachineBrain = GameObject.Find("Camera").GetComponent<CinemachineBrain>();
     }
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.E))
         {
-            Camera mainCamera = cinemachineBrain.OutputCamera; // Get Cinemachine-controlled camera
-            Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hit;
-
-            ToggleExamination();
-
-            if (Physics.Raycast(ray, out hit))
+            if (CheckUserClose())
             {
-                if (hit.collider.CompareTag("Object"))
+                Debug.Log("User is close to the table!");
+            }
+        }
+        Camera mainCamera = cinemachineBrain.OutputCamera;
+        Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
+        RaycastHit hit;
+
+        bool isLookingAtInspectable = false;
+
+        if (Physics.Raycast(ray, out hit))
+        {
+            if (hit.collider.CompareTag("Object"))  
+            {
+                isLookingAtInspectable = true;
+                _canva.enabled = true;  
+
+                if (Input.GetKeyDown(KeyCode.E))
                 {
+                    ToggleExamination();
                     if (isExamining)
                     {
                         examinedObject = hit.transform;
@@ -54,28 +69,45 @@ cinemachineBrain = GameObject.Find("Camera").GetComponent<CinemachineBrain>();
             }
         }
 
-        if (CheckUserClose())
+        if (!isLookingAtInspectable && !isExamining)
         {
-            if (isExamining)
-            {
-                _canva.enabled = false;
-                Examine();
-                StartExamination();
-            }
-            else
-            {
-                _canva.enabled = true;
-                NonExamine();
-                StopExamination();
-            }
+            _canva.enabled = false;
         }
-        else _canva.enabled = false;
+
+        if (isExamining)
+        {
+            Examine();
+            StartExamination();
+        }
+        else
+        {
+            NonExamine();
+            StopExamination();
+        }
     }
+
 
     public void ToggleExamination()
     {
         isExamining = !isExamining;
+        tmpText.gameObject.SetActive(!isExamining); 
+
+        if (!isExamining && examinedObject != null)
+        {
+            if (originalPositions.ContainsKey(examinedObject))
+            {
+                examinedObject.position = originalPositions[examinedObject];
+            }
+            if (originalRotations.ContainsKey(examinedObject))
+            {
+                examinedObject.rotation = originalRotations[examinedObject];
+            }
+
+            examinedObject = null; 
+        }
     }
+
+
 
     void StartExamination()
     {
@@ -96,7 +128,7 @@ cinemachineBrain = GameObject.Find("Camera").GetComponent<CinemachineBrain>();
     {
         if (examinedObject != null)
         {
-            examinedObject.position = Vector3.Lerp(examinedObject.position, offset.transform.position, 0.2f);
+            examinedObject.position = Vector3.Lerp(examinedObject.position, offset.transform.position, 0.1f);
             Vector3 deltaMouse = Input.mousePosition - lastMousePosition;
             float rotationSpeed = 1.0f;
             examinedObject.Rotate(deltaMouse.x * rotationSpeed * Vector3.up, Space.World);

@@ -1,90 +1,110 @@
 using UnityEngine;
-using TMPro; // Required for TextMeshPro
+using TMPro;
 
 public class PickupSystem : MonoBehaviour
 {
-    public float pickupRange = 3f; // How far the player can reach to pick up objects
-    public Transform holdPosition; // The position where the item will be held in front of the player
-    public TextMeshProUGUI interactText; // TextMeshProUGUI element that displays "E"
+    public float pickupRange = 3f;          // How far the player can pick up objects
+    public Transform holdPosition;          // Where the item is held
+    public TextMeshProUGUI interactText;    // "E" interaction prompt
+    public float moveSmoothness = 10f;      // How smoothly item follows hold position
+    public float throwForce = 10f;          // Force applied when throwing item
 
-    private GameObject currentItem; // Currently picked-up item
-    private GameObject itemInSight; // The item the player is looking at
+    private Camera playerCamera;
+    private Rigidbody currentItemRb;
+    private GameObject currentItem;
+
+    void Start()
+    {
+        if (interactText == null)
+            Debug.LogError("interactText is not assigned in the Inspector.");
+        if (holdPosition == null)
+            Debug.LogError("holdPosition is not assigned in the Inspector.");
+
+        GameObject cameraObject = GameObject.Find("Camera");
+        if (cameraObject != null)
+            playerCamera = cameraObject.GetComponent<Camera>();
+        else
+            Debug.LogError("No GameObject named 'Camera' found!");
+
+        if (interactText != null)
+            interactText.gameObject.SetActive(false);
+    }
 
     void Update()
     {
-        // Cast a ray from the center of the camera forward
-        Ray ray = Camera.main.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
-        RaycastHit hit;
+        if (interactText == null || holdPosition == null || playerCamera == null) return;
 
-        // Check if the ray hits an object within the pickup range
-        if (Physics.Raycast(ray, out hit, pickupRange))
+        if (currentItem == null) // Not holding an item
         {
-            if (hit.collider.CompareTag("PickupItem"))
+            Ray ray = playerCamera.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
+            RaycastHit hit;
+
+            if (Physics.Raycast(ray, out hit, pickupRange))
             {
-                itemInSight = hit.collider.gameObject;
-
-                // Show "E" prompt when looking at a pickup item
-                interactText.text = "E";
-                interactText.gameObject.SetActive(true);
-
-                // Check if the player presses the "E" key to pick up the object
-                if (Input.GetKeyDown(KeyCode.E))
+                if (hit.collider.CompareTag("PickupItem"))
                 {
-                    if (currentItem == null) // Pick up the object
-                    {
+                    interactText.text = "E";
+                    interactText.gameObject.SetActive(true);
+
+                    if (Input.GetKeyDown(KeyCode.E))
                         PickupItem(hit.collider.gameObject);
-                    }
-                    else // If already holding an item, drop it
-                    {
-                        DropItem();
-                    }
                 }
+                else
+                    interactText.gameObject.SetActive(false);
             }
             else
-            {
-                // Hide the text when not looking at a pickup item
                 interactText.gameObject.SetActive(false);
-            }
         }
-        else
+        else // Holding an item
         {
-            interactText.gameObject.SetActive(false);
-        }
+            if (Input.GetKeyDown(KeyCode.E))
+                DropItem();
 
-        // If holding an item, keep it at the hold position
+            if (Input.GetMouseButtonDown(1)) // Right-click to throw
+                ThrowItem();
+        }
+    }
+
+    void FixedUpdate()
+    {
         if (currentItem != null)
         {
-            currentItem.transform.position = holdPosition.position;
-            currentItem.transform.rotation = holdPosition.rotation;
+            Vector3 moveDirection = (holdPosition.position - currentItem.transform.position);
+            currentItemRb.linearVelocity = moveDirection * moveSmoothness;
         }
     }
 
     void PickupItem(GameObject item)
     {
         currentItem = item;
-        Rigidbody itemRb = currentItem.GetComponent<Rigidbody>();
+        currentItemRb = currentItem.GetComponent<Rigidbody>();
 
-        if (itemRb != null)
+        if (currentItemRb != null)
         {
-            itemRb.isKinematic = true; // Disable physics while holding the item
+            currentItemRb.useGravity = true;
+            currentItemRb.linearDamping = 5f;  // Add drag to prevent instant snapping
         }
-
-        currentItem.transform.SetParent(holdPosition); // Make the item a child of the hold position
     }
 
     void DropItem()
     {
         if (currentItem != null)
         {
-            Rigidbody itemRb = currentItem.GetComponent<Rigidbody>();
-
-            if (itemRb != null)
-            {
-                itemRb.isKinematic = false; // Re-enable physics when dropping the item
-            }
-
-            currentItem.transform.SetParent(null); // Remove the item from the hold position
+            currentItemRb.linearDamping = 0f; // Reset drag
+            currentItemRb.linearVelocity = Vector3.zero; // Stop movement
             currentItem = null;
+            currentItemRb = null;
+        }
+    }
+
+    void ThrowItem()
+    {
+        if (currentItem != null)
+        {
+            currentItemRb.linearDamping = 0f;
+            currentItemRb.linearVelocity = playerCamera.transform.forward * throwForce;
+            currentItem = null;
+            currentItemRb = null;
         }
     }
 }

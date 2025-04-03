@@ -529,6 +529,8 @@ MonoBehaviour:
   pickupRange: 10
   holdPosition: {fileID: 2042278451}
   interactText: {fileID: 235503343}
+  moveSmoothness: 5
+  throwForce: 10
 --- !u!1 &1154787040
 GameObject:
   m_ObjectHideFlags: 0

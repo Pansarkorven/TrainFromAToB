@@ -459,7 +459,7 @@ MonoBehaviour:
   circleRadius: 200
   terrainResolution: 129
   noiseScale: 20
-  heightMultiplier: 8
+  heightMultiplier: 4
 --- !u!1001 &787143325
 PrefabInstance:
   m_ObjectHideFlags: 0

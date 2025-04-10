@@ -1,49 +1,41 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using System;
+﻿using UnityEngine;
 
 public class Rotate : MonoBehaviour
 {
-    public static event Action<string, int> Rotated = delegate { };
-
-    private bool coroutineAllowed;
-
-    private int numberShown;
-
-    private void Start()
-    {
-        coroutineAllowed = true;
-        numberShown = 0;
-    }
+    public float rotationDuration = 0.5f; // How long the rotation takes
+    private int currentNumber = 0;
+    private bool isRotating = false;
 
     private void OnMouseDown()
     {
-        if (coroutineAllowed)
+        if (!isRotating)
         {
-            StartCoroutine("RotateWheel");
+            RotateToNextNumber();
         }
     }
 
-    private IEnumerator RotateWheel()
+    void RotateToNextNumber()
     {
-        coroutineAllowed = false;
+        currentNumber = (currentNumber + 1) % 10;
+        float targetAngle = currentNumber * -36f; // Negative for clockwise rotation
+        StartCoroutine(RotateWheel(targetAngle));
+    }
 
-        for (int i = 0; i <= 11; i++)
+    System.Collections.IEnumerator RotateWheel(float targetAngle)
+    {
+        isRotating = true;
+        Quaternion startRotation = transform.rotation;
+        Quaternion endRotation = Quaternion.Euler(0, 0, targetAngle);
+        float elapsed = 0f;
+
+        while (elapsed < rotationDuration)
         {
-            transform.Rotate(0f, 3f, 0f);
-            yield return new WaitForSeconds(0.01f);
+            transform.rotation = Quaternion.Slerp(startRotation, endRotation, elapsed / rotationDuration);
+            elapsed += Time.deltaTime;
+            yield return null;
         }
 
-        coroutineAllowed = true;
-
-        numberShown += 1;
-
-        if (numberShown > 9)
-        {
-            numberShown = 0;
-        }
-
-        Rotated(name, numberShown);
+        transform.rotation = endRotation;
+        isRotating = false;
     }
 }

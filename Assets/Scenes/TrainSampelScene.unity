@@ -457,7 +457,7 @@ MonoBehaviour:
   terrain: {fileID: 906627098}
   speed: 2
   circleRadius: 180
-  terrainResolution: 30
+  terrainResolution: 1
   noiseScale: 30
   heightMultiplier: 4
 --- !u!1001 &787143325

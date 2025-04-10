@@ -456,10 +456,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   terrain: {fileID: 906627098}
   speed: 2
-  circleRadius: 200
-  terrainResolution: 129
-  noiseScale: 20
-  heightMultiplier: 8
+  circleRadius: 180
+  terrainResolution: 30
+  noiseScale: 30
+  heightMultiplier: 4
 --- !u!1001 &787143325
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -697,7 +697,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   backgroundRenderer: {fileID: 1298059508}
-  speed: 2.5
+  speed: 1
 --- !u!64 &1298059507
 MeshCollider:
   m_ObjectHideFlags: 0

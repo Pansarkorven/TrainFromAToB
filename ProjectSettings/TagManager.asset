@@ -5,7 +5,9 @@ TagManager:
   serializedVersion: 3
   tags:
   - CinemachineTarget
-  - PickupItem
+  - PickUpItem
+  - Object
+  - walls
   layers:
   - Default
   - TransparentFX

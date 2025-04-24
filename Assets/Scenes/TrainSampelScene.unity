@@ -364,18 +364,6 @@ PrefabInstance:
       value: PlayerCapsule
       objectReference: {fileID: 0}
     - target: {fileID: 6780503122267494269, guid: 943a297bc12d49048b5df88bff911a49, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 6780503122267494269, guid: 943a297bc12d49048b5df88bff911a49, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 4
-      objectReference: {fileID: 0}
-    - target: {fileID: 6780503122267494269, guid: 943a297bc12d49048b5df88bff911a49, type: 3}
-      propertyPath: m_LocalScale.z
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 6780503122267494269, guid: 943a297bc12d49048b5df88bff911a49, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}

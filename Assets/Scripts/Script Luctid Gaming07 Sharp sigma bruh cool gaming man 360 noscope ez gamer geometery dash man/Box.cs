@@ -2,10 +2,10 @@ using UnityEngine;
 
 public class Box : MonoBehaviour
 {
-    public Transform holdPoint; // Where the box will be held (e.g., in front of the camera)
-    public Canvas pickupCanvas; // UI canvas showing "Press E to pick up"
+    public Transform holdPoint; 
+    public Canvas pickupCanvas; 
     public float pickupRange = 3f;
-    public string cameraTag = "MainCamera"; // Tag to find the player's camera
+    public string cameraTag = "MainCamera"; 
 
     private bool isPickedUp = false;
     private Rigidbody rb;
@@ -18,7 +18,6 @@ public class Box : MonoBehaviour
         if (pickupCanvas != null)
             pickupCanvas.enabled = false;
 
-        // Find the camera by tag
         GameObject camObj = GameObject.FindGameObjectWithTag(cameraTag);
         if (camObj != null)
         {

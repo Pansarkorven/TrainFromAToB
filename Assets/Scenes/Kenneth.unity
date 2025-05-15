@@ -171,7 +171,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 82b51f315fb9f0d4badb52a7cb640479, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rotationAngle: 90
+  rotationAngle: 30
   rotationSpeed: 200
   interactionDistance: 3
   wheelLayer:
@@ -191,7 +191,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2906155093701996576, guid: 9e356fb81bca1114e8f828a8892c9ea4, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 2.195
+      value: 6.32
       objectReference: {fileID: 0}
     - target: {fileID: 2906155093701996576, guid: 9e356fb81bca1114e8f828a8892c9ea4, type: 3}
       propertyPath: m_LocalPosition.z
@@ -317,7 +317,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8386573170628723406, guid: 8e2ec37dd8818974dabaebd7589ba562, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 2.195
+      value: 6.32
       objectReference: {fileID: 0}
     - target: {fileID: 8386573170628723406, guid: 8e2ec37dd8818974dabaebd7589ba562, type: 3}
       propertyPath: m_LocalPosition.z

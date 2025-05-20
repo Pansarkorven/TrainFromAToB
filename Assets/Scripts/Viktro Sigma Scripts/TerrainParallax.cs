@@ -4,32 +4,34 @@ using System.Collections.Generic;
 public class TerrainParallaxManager : MonoBehaviour
 {
     [Header("Terrain")]
-    public Terrain terrain;
-    public float scrollSpeed = 10f;        // Speed of noise scroll vertically (Z)
-    public float noiseScale = 20f;
-    public float heightMultiplier = 5f;
+    [SerializeField] Terrain terrain;
+    [SerializeField] public float scrollSpeed = 10f;
+    [SerializeField] public float noiseScale = 20f;
+    [SerializeField] public float heightMultiplier = 5f;
 
     [Header("Prefab Spawning")]
     public GameObject[] spawnPrefabs;
-    [Range(0f, 1f)]
-    public float spawnChance = 0.3f;
-    public float spawnInterval = 0.3f;
-    public float objectYOffset = 1f;
-    public float despawnTime = 10f;
-    public float circleRadius = 30f;
+    [Tooltip("Spawn chance for each prefab, values between 0 and 1")]
+    [Range(0f, 2f)]
+    public float[] spawnChances;  
 
-    private float noiseOffsetZ = 0f;
-    private float spawnTimer = 0f;
-    private TerrainData terrainData;
+    [SerializeField] public float spawnInterval = 0.3f;
+    [SerializeField] public float objectYOffset = 1f;
+    [SerializeField] public float despawnTime = 10f;
+    [SerializeField] public float circleRadius = 30f;
+    [SerializeField] public float PrefabSpeed = 2f;
 
-    private List<SpawnedObject> activeObjects = new List<SpawnedObject>();
+    [SerializeField] float noiseOffsetZ = 0f;
+    [SerializeField] float spawnTimer = 0f;
+    [SerializeField] TerrainData terrainData;
+    [SerializeField] List<SpawnedObject> activeObjects = new List<SpawnedObject>();
 
     class SpawnedObject
     {
         public GameObject instance;
         public float spawnTime;
-        public float xNorm;    // normalized X (0-1)
-        public float zNorm;    // normalized Z (0-1)
+        public float xNorm;
+        public float zNorm;
 
         public SpawnedObject(GameObject obj, float x, float z)
         {
@@ -49,11 +51,18 @@ public class TerrainParallaxManager : MonoBehaviour
             return;
         }
         terrainData = terrain.terrainData;
+
+    
+        if (spawnChances == null || spawnChances.Length != spawnPrefabs.Length)
+        {
+            spawnChances = new float[spawnPrefabs.Length];
+            for (int i = 0; i < spawnChances.Length; i++)
+                spawnChances[i] = 0.3f;
+        }
     }
 
     void Update()
     {
-        // Advance noise offset vertically (Z)
         noiseOffsetZ += scrollSpeed * Time.deltaTime;
 
         UpdateTerrain();
@@ -90,15 +99,12 @@ public class TerrainParallaxManager : MonoBehaviour
     void TrySpawnPrefab()
     {
         if (spawnPrefabs.Length == 0) return;
-        if (Random.value > spawnChance) return;
 
         float terrainSizeX = terrainData.size.x;
         float terrainSizeZ = terrainData.size.z;
 
-        // Center of circle normalized coords
         float centerX = 0.5f;
         float centerZ = 0.5f;
-
         float radiusNormalized = circleRadius / terrainSizeX;
 
         Vector2 spawnPos;
@@ -117,6 +123,18 @@ public class TerrainParallaxManager : MonoBehaviour
         float xNorm = Mathf.Clamp01(spawnPos.x);
         float zNorm = Mathf.Clamp01(spawnPos.y);
 
+        // Now select prefab based on individual spawn chances
+        List<int> candidates = new List<int>();
+        for (int i = 0; i < spawnPrefabs.Length; i++)
+        {
+            if (Random.value <= spawnChances[i])
+                candidates.Add(i);
+        }
+
+        if (candidates.Count == 0) return;  // no prefab selected this frame
+
+        int selectedIndex = candidates[Random.Range(0, candidates.Count)];
+
         float height = GetNoiseHeight(xNorm, zNorm + noiseOffsetZ / terrainSizeZ);
 
         Vector3 worldPos = new Vector3(
@@ -125,7 +143,7 @@ public class TerrainParallaxManager : MonoBehaviour
             zNorm * terrainSizeZ
         ) + terrain.transform.position;
 
-        GameObject prefab = spawnPrefabs[Random.Range(0, spawnPrefabs.Length)];
+        GameObject prefab = spawnPrefabs[selectedIndex];
         GameObject instance = Instantiate(prefab, worldPos, Quaternion.identity);
 
         activeObjects.Add(new SpawnedObject(instance, xNorm, zNorm));
@@ -140,17 +158,21 @@ public class TerrainParallaxManager : MonoBehaviour
         float centerZ = 0.5f;
         float radiusNormalized = circleRadius / terrainSizeX;
 
-        // Move prefabs **horizontally** leftward by scrollSpeed (normalized)
-        float normalizedSpeedX = scrollSpeed / terrainSizeX;
+        float normalizedSpeedX = PrefabSpeed;
 
         for (int i = activeObjects.Count - 1; i >= 0; i--)
         {
             var obj = activeObjects[i];
 
-            // Move prefab leftward along X axis (normalized)
+            // Check if the instance was destroyed externally or is null
+            if (obj.instance == null)
+            {
+                activeObjects.RemoveAt(i);
+                continue;
+            }
+
             obj.xNorm -= normalizedSpeedX * Time.deltaTime;
 
-            // Despawn if outside circle radius or time expired
             Vector2 pos = new Vector2(obj.xNorm, obj.zNorm);
             if (Time.time - obj.spawnTime > despawnTime || Vector2.Distance(pos, new Vector2(centerX, centerZ)) > radiusNormalized)
             {
@@ -159,7 +181,6 @@ public class TerrainParallaxManager : MonoBehaviour
                 continue;
             }
 
-            // Calculate height at current noise position (adjust Z with noiseOffsetZ)
             float noiseZ = obj.zNorm + noiseOffsetZ / terrainSizeZ;
             float height = GetNoiseHeight(obj.xNorm, noiseZ);
 
@@ -169,7 +190,11 @@ public class TerrainParallaxManager : MonoBehaviour
                 obj.zNorm * terrainSizeZ
             ) + terrain.transform.position;
 
-            obj.instance.transform.position = worldPos;
+            obj.instance.transform.position = Vector3.Lerp(
+                obj.instance.transform.position,
+                worldPos,
+                Time.deltaTime * 10f
+            );
         }
     }
 
@@ -178,6 +203,19 @@ public class TerrainParallaxManager : MonoBehaviour
         float nx = xNorm * noiseScale;
         float nz = zNorm * noiseScale;
         float h = Mathf.PerlinNoise(nx, nz);
-        return h * heightMultiplier;
+        return h * heightMultiplier / terrainData.size.y;
+    }
+
+    void OnDrawGizmos()
+    {
+        Gizmos.color = Color.green;
+        if (activeObjects != null)
+        {
+            foreach (var obj in activeObjects)
+            {
+                if (obj.instance != null)
+                    Gizmos.DrawSphere(obj.instance.transform.position, 0.5f);
+            }
+        }
     }
 }

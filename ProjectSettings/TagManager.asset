@@ -8,6 +8,8 @@ TagManager:
   - PickUpItem
   - Object
   - walls
+  - PickupItem
+  - Box
   layers:
   - Default
   - TransparentFX

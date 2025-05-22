@@ -1,5 +1,4 @@
 using UnityEngine;
-using System.Collections.Generic;
 
 public class SlidingPuzzleManager : MonoBehaviour
 {
@@ -9,17 +8,26 @@ public class SlidingPuzzleManager : MonoBehaviour
 
     private TileController[,] tiles;
     private Vector2Int emptyTilePos;
+    private TileController selectedTile;
 
     void Start()
     {
         InitPuzzle();
     }
 
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.E) && selectedTile != null)
+        {
+            TryMoveTile(selectedTile);
+        }
+    }
+
     void InitPuzzle()
     {
         tiles = new TileController[gridSize, gridSize];
-
         int num = 1;
+
         for (int y = 0; y < gridSize; y++)
         {
             for (int x = 0; x < gridSize; x++)
@@ -43,13 +51,17 @@ public class SlidingPuzzleManager : MonoBehaviour
         }
     }
 
+    public void SelectTile(TileController tile)
+    {
+        selectedTile = tile;
+    }
+
     public void TryMoveTile(TileController tile)
     {
         Vector2Int pos = tile.gridPos;
 
         if (IsAdjacent(pos, emptyTilePos))
         {
-            // Swap positions
             tiles[emptyTilePos.x, emptyTilePos.y] = tile;
             tiles[pos.x, pos.y] = null;
 

@@ -2,18 +2,17 @@ using UnityEngine;
 
 public class PressurePlate : MonoBehaviour
 {
-    public Animator doorAnimator; // Assign the Animator from your door in Inspector
-    private bool hasOpened = false; // Prevents triggering multiple times
+    public Animator doorAnimator; 
+    private bool hasOpened = false; 
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (!hasOpened && collision.gameObject.CompareTag("Box"))
+        if (!hasOpened && collision.gameObject.CompareTag("PickupItem"))
         {
             Debug.Log("Box on pad");
             if (doorAnimator != null)
             {
                 doorAnimator.SetTrigger("Open");
-                Debug.Log("Door opens (animation)");
                 hasOpened = true; 
             }
         }

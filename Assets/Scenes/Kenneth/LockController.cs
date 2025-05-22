@@ -10,10 +10,9 @@ public class LockController : MonoBehaviour
     public LayerMask wheelLayer;
 
     public Transform[] wheels;
-    public float[] wheelOffsets; // Offset for each wheel to align '0' correctly
+    public float[] wheelOffsets;
     public int[] correctCombination = new int[] { 3, 1, 4, 1, 1, 1 };
 
-    private Dictionary<Transform, int> rotationSteps = new Dictionary<Transform, int>();
     private Camera mainCam;
     private bool isRotating = false;
     private Transform targetWheel;
@@ -29,12 +28,18 @@ public class LockController : MonoBehaviour
         if (wheelOffsets.Length != wheels.Length)
         {
             Debug.LogWarning("wheelOffsets length does not match wheels length. Defaulting to 0 offsets.");
-            wheelOffsets = new float[wheels.Length]; // Fill with 0s
+            wheelOffsets = new float[wheels.Length];
         }
 
-        foreach (var wheel in wheels)
+        // Initialize each wheel to start with digit 1 facing the player
+        for (int i = 0; i < wheels.Length; i++)
         {
-            rotationSteps[wheel] = 0;
+            float offset = wheelOffsets[i];
+            float initialAngle = (1 * rotationAngle + offset) % 360f;
+
+            Vector3 localEuler = wheels[i].localEulerAngles;
+            localEuler.y = initialAngle;
+            wheels[i].localEulerAngles = localEuler;
         }
     }
 
@@ -51,13 +56,7 @@ public class LockController : MonoBehaviour
 
             if (Input.GetKeyDown(KeyCode.E))
             {
-                rotationSteps[targetWheel] = (rotationSteps[targetWheel] + 1) % 10;
-
                 StartCoroutine(RotateWheel(targetWheel, rotationAngle));
-
-                Debug.Log($"Rotated {targetWheel.name}. Step = {rotationSteps[targetWheel]}");
-
-                CheckCombination();
             }
         }
     }
@@ -79,27 +78,34 @@ public class LockController : MonoBehaviour
             yield return null;
         }
 
-        // Snap to precise final angle
-        int wheelIndex = System.Array.IndexOf(wheels, wheel);
-        int stepCount = rotationSteps[wheel];
-        float offset = wheelOffsets[wheelIndex]; // per-wheel offset
+        // Snap to exact angle
+        int index = System.Array.IndexOf(wheels, wheel);
+        float currentY = wheel.localEulerAngles.y;
+        float offset = wheelOffsets[index];
 
-        float snappedY = (stepCount * rotationAngle + offset) % 360f;
+        // Remove offset before snapping
+        float rawAngle = (currentY - offset + 360f) % 360f;
+        int currentDigit = Mathf.RoundToInt(rawAngle / rotationAngle) % 10;
 
-        Vector3 localEuler = wheel.localEulerAngles;
-        localEuler.y = snappedY;
-        wheel.localEulerAngles = localEuler;
+        // Apply new snapped rotation
+        float snappedY = (currentDigit * rotationAngle + offset) % 360f;
+        Vector3 finalEuler = wheel.localEulerAngles;
+        finalEuler.y = snappedY;
+        wheel.localEulerAngles = finalEuler;
+
+        Debug.Log($"Wheel [{wheel.name}] snapped to digit: {currentDigit}");
 
         isRotating = false;
+
+        CheckCombination();
     }
 
     void CheckCombination()
     {
         for (int i = 0; i < wheels.Length; i++)
         {
-            int frontDigit = GetDigitFacingPlayer(wheels[i]);
-
-            if (frontDigit != correctCombination[i])
+            int digit = GetDigitFromRotation(wheels[i], wheelOffsets[i]);
+            if (digit != correctCombination[i])
                 return;
         }
 
@@ -108,17 +114,14 @@ public class LockController : MonoBehaviour
     }
 
     /// <summary>
-    /// Determines the digit currently facing the player based on Y rotation.
+    /// Calculates which digit is facing front using wheel rotation and offset.
     /// </summary>
-    int GetDigitFacingPlayer(Transform wheel)
+    int GetDigitFromRotation(Transform wheel, float offset)
     {
-        Vector3 toCamera = (mainCam.transform.position - wheel.position).normalized;
-        Vector3 localToCamera = wheel.InverseTransformDirection(toCamera); // in wheel's local space
+        float y = wheel.localEulerAngles.y;
+        float rawAngle = (y - offset + 360f) % 360f;
 
-        float angle = Mathf.Atan2(localToCamera.x, localToCamera.z) * Mathf.Rad2Deg;
-        if (angle < 0) angle += 360f;
-
-        int digit = Mathf.RoundToInt(angle / rotationAngle) % 10;
+        int digit = Mathf.RoundToInt(rawAngle / rotationAngle) % 10;
 
         return digit;
     }
